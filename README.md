@@ -12,4 +12,4 @@ S3_BUCKET_NAME="bitcoin-bucket-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w
 ```
 
 ## Application architecture
-![Architecture](./architecture/gitlab-cicd-demo.drawio.svg)
+![Architecture](./architecture/gitlab-cicd-demo.drawio.png)
