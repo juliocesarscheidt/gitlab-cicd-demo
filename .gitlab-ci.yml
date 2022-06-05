@@ -19,9 +19,6 @@ install-dependencies-job:
   script:
     - cd job
     - yarn install
-  only:
-    changes:
-      - job/yarn.lock
 
 build-job:
   image: alpine:3.14
