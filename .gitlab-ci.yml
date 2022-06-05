@@ -7,19 +7,6 @@ stages:
 variables:
   API_URL: "https://api.biscoint.io/v1/ticker?base=BTC&quote=BRL"
 
-install-dependencies-job:
-  image:
-    name: node:18-alpine
-    entrypoint: [""]
-  stage: build
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
-    paths:
-      - job/node_modules/
-  script:
-    - cd job
-    - yarn install
-
 build-job:
   image: alpine:3.14
   stage: build
@@ -39,6 +26,19 @@ build-job:
     expire_in: 5 mins
     paths:
       - output/BITCOIN.json
+
+install-dependencies-job:
+  image:
+    name: node:18-alpine
+    entrypoint: [""]
+  stage: build
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+    paths:
+      - job/node_modules/
+  script:
+    - cd job
+    - yarn install
 
 test-job-file:
   image: alpine:3.14

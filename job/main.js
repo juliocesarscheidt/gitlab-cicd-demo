@@ -47,7 +47,6 @@ const retrieveS3ObjectByDate = async (s3Client, s3BucketName, today) => {
   await mongoClient.connect();
   const s3Client = new AWS.S3({ apiVersion: '2013-04-01' });
   const today = moment();
-  console.log('today', today);
   const content = await retrieveS3ObjectByDate(s3Client, s3BucketName, today);
   console.log('content', content);
   await persistCurrency(mongoClient, mongoDatabase, content);
