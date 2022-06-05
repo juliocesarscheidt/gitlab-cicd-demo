@@ -4,14 +4,14 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "node main.js"
+    "start": "node main.js",
+    "test": "exit 0"
   },
   "keywords": [],
   "author": "Julio Cesar <julio@blackdevs.com.br>",
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "2.1130.0",
-    "axios": "0.21.1",
     "crypto": "1.0.1",
     "moment": "2.29.3",
     "mongodb": "4.2.2"
