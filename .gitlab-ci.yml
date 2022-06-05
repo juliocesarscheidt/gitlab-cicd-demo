@@ -7,10 +7,6 @@ stages:
 variables:
   API_URL: "https://api.biscoint.io/v1/ticker?base=BTC&quote=BRL"
 
-cache:
-  paths:
-    - job/node_modules/
-
 build-job:
   image: alpine:3.14
   stage: build
@@ -54,6 +50,9 @@ test-job-node:
     - yarn run test
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+  cache:
+    paths:
+      - job/node_modules/
 
 deploy-job:
   image:
