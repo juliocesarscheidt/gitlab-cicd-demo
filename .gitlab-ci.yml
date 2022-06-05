@@ -1,0 +1,80 @@
+stages:
+  - build
+  - test
+  - deploy
+  - post-deploy
+
+variables:
+  API_URL: "https://api.biscoint.io/v1/ticker?base=BTC&quote=BRL"
+
+cache:
+  paths:
+    - job/node_modules/
+
+build-job:
+  image: alpine:3.14
+  stage: build
+  allow_failure: false
+  script:
+    - echo "CI_JOB_STAGE Stage e.g. "build" -> $CI_JOB_STAGE"
+    - echo "API_URL -> $API_URL"
+    - echo "GITLAB_USER_LOGIN User Name -> $GITLAB_USER_LOGIN"
+    - echo "CI_PIPELINE_SOURCE Event Type e.g. "push" -> $CI_PIPELINE_SOURCE"
+    - echo "CI_DEFAULT_BRANCH Default Branch for Repository -> $CI_DEFAULT_BRANCH"
+    - echo "CI_COMMIT_BRANCH Branch Name -> $CI_COMMIT_BRANCH"
+    - echo "CI_COMMIT_MESSAGE Branch Message -> $CI_COMMIT_MESSAGE"
+    - echo "CI_JOB_ID CI unique number for build -> $CI_JOB_ID"
+    - echo "CI_COMMIT_SHA Full Commit SHA -> $CI_COMMIT_SHA"
+    - echo "CI_COMMIT_SHORT_SHA Commit SHA with 8 Chars -> $CI_COMMIT_SHORT_SHA"
+    - CI_COMMIT_SHORT_SHA_CUSTOM=$(echo $CI_COMMIT_SHA | cut -c 1-7)
+    - echo "CI_COMMIT_SHORT_SHA_CUSTOM -> $CI_COMMIT_SHORT_SHA_CUSTOM"
+    - apk add --update curl jq coreutils
+    - BITCOIN_PRICE=$(curl --silent "${API_URL}" | jq -r  '.data.last')
+    - mkdir -p output
+    - echo "BITCOIN_PRICE -> $BITCOIN_PRICE"
+    - |
+      echo "{\"name\" : \"btc-brl\", \"price\" : $BITCOIN_PRICE, \"date\": \"$(date '+%Y-%m-%dT%T.%3NZ')\"}" > output/BITCOIN
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+  artifacts:
+    expire_in: 5 mins
+    paths:
+      - output/BITCOIN
+
+test-job:
+  image: alpine:3.14
+  stage: test
+  allow_failure: false
+  script:
+    - echo "CI_JOB_STAGE Stage e.g. "test" -> $CI_JOB_STAGE"
+    - cat output/BITCOIN
+    - test -f output/BITCOIN
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+
+deploy-job:
+  image:
+    name: amazon/aws-cli:2.6.2
+    entrypoint: [""]
+  stage: deploy
+  allow_failure: false
+  script:
+    - echo "CI_JOB_STAGE Stage e.g. "deploy" -> $CI_JOB_STAGE"
+    - aws --version
+    - DAY=$(date '+%d')
+    - MONTH=$(date '+%m')
+    - YEAR=$(date '+%Y')
+    - aws s3 cp output/BITCOIN s3://$S3_BUCKET_NAME/bitcoin/year=$YEAR/month=$MONTH/day=$DAY/last
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+
+post-deploy-job:
+  image:
+    name: node:18-alpine
+    entrypoint: [""]
+  stage: post-deploy
+  allow_failure: false
+  script:
+    - cd job
+    - yarn install
+    - node main.js
