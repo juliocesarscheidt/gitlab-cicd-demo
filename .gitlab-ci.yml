@@ -7,6 +7,22 @@ stages:
 variables:
   API_URL: "https://api.biscoint.io/v1/ticker?base=BTC&quote=BRL"
 
+install-dependencies-job:
+  image:
+    name: node:18-alpine
+    entrypoint: [""]
+  stage: build
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+    paths:
+      - job/node_modules/
+  script:
+    - cd job
+    - yarn install
+  only:
+    changes:
+      - job/yarn.lock
+
 build-job:
   image: alpine:3.14
   stage: build
@@ -43,16 +59,17 @@ test-job-node:
     name: node:18-alpine
     entrypoint: [""]
   stage: test
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+    paths:
+      - job/node_modules/
+    policy: pull
   allow_failure: false
   script:
     - cd job
-    - yarn install
     - yarn run test
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
-  cache:
-    paths:
-      - job/node_modules/
 
 deploy-job:
   image:
@@ -74,10 +91,14 @@ post-deploy-job:
     name: node:18-alpine
     entrypoint: [""]
   stage: post-deploy
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+    paths:
+      - job/node_modules/
+    policy: pull
   allow_failure: false
   script:
     - cd job
-    # - yarn install
     - node main.js
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
