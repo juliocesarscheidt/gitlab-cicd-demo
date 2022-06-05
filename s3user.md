@@ -9,6 +9,7 @@ export S3_BUCKET_NAME="bitcoin-bucket-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | 
 echo "${S3_BUCKET_NAME}"
 
 export AWS_REGION=sa-east-1
+export AWS_ACCOUNT=$(aws sts get-caller-identity | jq -r '.Account')
 
 aws s3api create-bucket --bucket "${S3_BUCKET_NAME}" --region "${AWS_REGION}" \
   --create-bucket-configuration LocationConstraint="${AWS_REGION}" --acl private
