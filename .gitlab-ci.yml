@@ -1,8 +1,8 @@
 stages:
   - build
-  # - test
-  # - deploy-s3
-  # - post-deploy-s3
+  - test
+  - deploy-s3
+  - post-deploy-s3
   - prepare
   - validate
   - plan
@@ -35,63 +35,63 @@ build:
       - output/BITCOIN
       - output/BITCOIN.json
 
-# install-dependencies:
-#   image:
-#     name: node:18-alpine
-#     entrypoint: [""]
-#   stage: build
-#   cache:
-#     key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
-#     paths:
-#       - job/node_modules/
-#   script:
-#     - cd job
-#     - yarn install
+install-dependencies:
+  image:
+    name: node:18-alpine
+    entrypoint: [""]
+  stage: build
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+    paths:
+      - job/node_modules/
+  script:
+    - cd job
+    - yarn install
 
-# test-file:
-#   image: alpine:3.14
-#   stage: test
-#   allow_failure: false
-#   script:
-#     - echo "CI_JOB_STAGE Stage e.g. "test" -> $CI_JOB_STAGE"
-#     - cat output/BITCOIN
-#     - test -f output/BITCOIN
-#     - cat output/BITCOIN.json
-#     - test -f output/BITCOIN.json
-#   after_script:
-#     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+test-file:
+  image: alpine:3.14
+  stage: test
+  allow_failure: false
+  script:
+    - echo "CI_JOB_STAGE Stage e.g. "test" -> $CI_JOB_STAGE"
+    - cat output/BITCOIN
+    - test -f output/BITCOIN
+    - cat output/BITCOIN.json
+    - test -f output/BITCOIN.json
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-# deploy-s3:
-#   image:
-#     name: amazon/aws-cli:2.6.2
-#     entrypoint: [""]
-#   stage: deploy-s3
-#   allow_failure: false
-#   script:
-#     - echo "CI_JOB_STAGE Stage e.g. "deploy" -> $CI_JOB_STAGE"
-#     - DAY=$(date '+%d')
-#     - MONTH=$(date '+%m')
-#     - YEAR=$(date '+%Y')
-#     - aws s3 cp output/BITCOIN.json s3://$S3_BUCKET_NAME/bitcoin/year=$YEAR/month=$MONTH/day=$DAY/last.json
-#   after_script:
-#     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+deploy-s3:
+  image:
+    name: amazon/aws-cli:2.6.2
+    entrypoint: [""]
+  stage: deploy-s3
+  allow_failure: false
+  script:
+    - echo "CI_JOB_STAGE Stage e.g. "deploy" -> $CI_JOB_STAGE"
+    - DAY=$(date '+%d')
+    - MONTH=$(date '+%m')
+    - YEAR=$(date '+%Y')
+    - aws s3 cp output/BITCOIN.json s3://$S3_BUCKET_NAME/bitcoin/year=$YEAR/month=$MONTH/day=$DAY/last.json
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-# post-deploy-s3:
-#   image:
-#     name: node:18-alpine
-#     entrypoint: [""]
-#   stage: post-deploy-s3
-#   cache:
-#     key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
-#     paths:
-#       - job/node_modules/
-#     policy: pull
-#   allow_failure: false
-#   script:
-#     - cd job
-#     - node main.js
-#   after_script:
-#     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+post-deploy-s3:
+  image:
+    name: node:18-alpine
+    entrypoint: [""]
+  stage: post-deploy-s3
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+    paths:
+      - job/node_modules/
+    policy: pull
+  allow_failure: false
+  script:
+    - cd job
+    - node main.js
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
 prepare:
   image:
