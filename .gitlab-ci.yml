@@ -1,9 +1,11 @@
 stages:
   - build
-  - test
-  - deploy-s3
-  - post-deploy-s3
-  - deploy-tf
+  # - test
+  # - deploy-s3
+  # - post-deploy-s3
+  - prepare
+  - validate
+  - plan
 
 variables:
   API_URL: "https://api.bitpreco.com/btc-brl/ticker"
@@ -43,70 +45,70 @@ install-dependencies-job:
     - cd job
     - yarn install
 
-test-job-file:
-  image: alpine:3.14
-  stage: test
-  allow_failure: false
-  script:
-    - echo "CI_JOB_STAGE Stage e.g. "test" -> $CI_JOB_STAGE"
-    - cat output/BITCOIN.json
-    - test -f output/BITCOIN.json
-  after_script:
-    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+# test-job-file:
+#   image: alpine:3.14
+#   stage: test
+#   allow_failure: false
+#   script:
+#     - echo "CI_JOB_STAGE Stage e.g. "test" -> $CI_JOB_STAGE"
+#     - cat output/BITCOIN.json
+#     - test -f output/BITCOIN.json
+#   after_script:
+#     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-test-job-node:
-  image:
-    name: node:18-alpine
-    entrypoint: [""]
-  stage: test
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
-    paths:
-      - job/node_modules/
-    policy: pull
-  allow_failure: false
-  script:
-    - cd job
-    - yarn run test
-  after_script:
-    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+# test-job-node:
+#   image:
+#     name: node:18-alpine
+#     entrypoint: [""]
+#   stage: test
+#   cache:
+#     key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+#     paths:
+#       - job/node_modules/
+#     policy: pull
+#   allow_failure: false
+#   script:
+#     - cd job
+#     - yarn run test
+#   after_script:
+#     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-deploy-s3-job:
-  image:
-    name: amazon/aws-cli:2.6.2
-    entrypoint: [""]
-  stage: deploy-s3
-  allow_failure: false
-  script:
-    - echo "CI_JOB_STAGE Stage e.g. "deploy" -> $CI_JOB_STAGE"
-    - DAY=$(date '+%d')
-    - MONTH=$(date '+%m')
-    - YEAR=$(date '+%Y')
-    - aws s3 cp output/BITCOIN.json s3://$S3_BUCKET_NAME/bitcoin/year=$YEAR/month=$MONTH/day=$DAY/last.json
-  after_script:
-    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+# deploy-s3-job:
+#   image:
+#     name: amazon/aws-cli:2.6.2
+#     entrypoint: [""]
+#   stage: deploy-s3
+#   allow_failure: false
+#   script:
+#     - echo "CI_JOB_STAGE Stage e.g. "deploy" -> $CI_JOB_STAGE"
+#     - DAY=$(date '+%d')
+#     - MONTH=$(date '+%m')
+#     - YEAR=$(date '+%Y')
+#     - aws s3 cp output/BITCOIN.json s3://$S3_BUCKET_NAME/bitcoin/year=$YEAR/month=$MONTH/day=$DAY/last.json
+#   after_script:
+#     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-post-deploy-s3-job:
-  image:
-    name: node:18-alpine
-    entrypoint: [""]
-  stage: post-deploy-s3
-  cache:
-    key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
-    paths:
-      - job/node_modules/
-    policy: pull
-  allow_failure: false
-  script:
-    - cd job
-    - node main.js
-  after_script:
-    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+# post-deploy-s3-job:
+#   image:
+#     name: node:18-alpine
+#     entrypoint: [""]
+#   stage: post-deploy-s3
+#   cache:
+#     key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
+#     paths:
+#       - job/node_modules/
+#     policy: pull
+#   allow_failure: false
+#   script:
+#     - cd job
+#     - node main.js
+#   after_script:
+#     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-deploy-tf:
+prepare:
   image:
     name: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
-  stage: deploy-tf
+  stage: prepare
   cache:
     key: state
     paths:
@@ -114,6 +116,40 @@ deploy-tf:
   allow_failure: false
   script:
     - gitlab-terraform init
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+
+validate:
+  image:
+    name: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+  stage: validate
+  cache:
+    key: state
+    paths:
+      - ${TF_ROOT}/.terraform
+  allow_failure: false
+  script:
     - gitlab-terraform validate
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+
+plan:
+  image:
+    name: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+  stage: plan
+  cache:
+    key: state
+    paths:
+      - ${TF_ROOT}/.terraform
+  allow_failure: false
+  script:
+    - gitlab-terraform plan
+    - gitlab-terraform plan-json
+  artifacts:
+    name: plan
+    paths:
+      - ${TF_ROOT}/plan.cache
+    reports:
+      terraform: ${TF_ROOT}/plan.json
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"

@@ -13,17 +13,23 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.region
+}
+
+variable "region" {
+  type        = string
+  description = "AWS region"
+  default     = "us-east-1"
 }
 
 variable "domain_name" {
   type        = string
-  description = "The domain name for the website."
+  description = "The domain name for the website"
 }
 
 variable "bucket_name" {
   type        = string
-  description = "The name of the bucket without the www. prefix. Normally domain_name."
+  description = "The name for the S3 bucket"
 }
 
 resource "aws_s3_bucket" "web_bucket" {
