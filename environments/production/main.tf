@@ -78,10 +78,10 @@ resource "aws_s3_bucket_versioning" "web_bucket_versioning" {
 }
 
 resource "aws_s3_object" "web_index" {
-  bucket        = aws_s3_bucket.web_bucket.id
-  key           = "index.html"
-  content_type  = "text/html"
-  content       = templatefile("../../src/index.html", { bitcoin_price = var.bitcoin_price })
+  bucket       = aws_s3_bucket.web_bucket.id
+  key          = "index.html"
+  content_type = "text/html"
+  content      = templatefile("../../src/index.html", { bitcoin_price = var.bitcoin_price })
   # etag          = filemd5("../../src/index.html")
   acl           = "public-read"
   force_destroy = true

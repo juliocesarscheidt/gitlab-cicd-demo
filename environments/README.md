@@ -31,5 +31,18 @@ terraform plan
 
 terraform apply -auto-approve
 
+terraform output
+
+terraform show
+
+terraform refresh
+
 terraform destroy -auto-approve
+
+export TF_LOG=trace
+export TF_LOG_PATH=./terraform.log
+
+export TF_LOG=off
+
+export TF_INPUT=0
 ```
