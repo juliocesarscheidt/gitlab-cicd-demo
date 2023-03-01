@@ -6,11 +6,14 @@ stages:
   - prepare
   - validate
   - plan
+  - apply
 
 variables:
   API_URL: "https://api.bitpreco.com/btc-brl/ticker"
   TF_ROOT: ${CI_PROJECT_DIR}/environments/production
   TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/state
+  PLAN: plan.cache
+  PLAN_JSON: plan.json
 
 build-job:
   image: alpine:3.14
@@ -25,6 +28,7 @@ build-job:
     - echo "BITCOIN_PRICE -> $BITCOIN_PRICE"
     - |
       echo "{\"name\":\"btc-brl\",\"price\":$BITCOIN_PRICE,\"date\":\"$(date '+%Y-%m-%dT%T.%3NZ')\"}" > output/BITCOIN.json
+    - echo "<body><h1>Bitcoin Price $BITCOIN_PRICE</h1></body>" > src/index.html
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
   artifacts:
@@ -115,9 +119,6 @@ prepare:
       - ${TF_ROOT}/.terraform
   allow_failure: false
   script:
-    - echo ${TF_HTTP_ADDRESS}
-    - echo ${TF_HTTP_USERNAME}
-    - echo ${TF_HTTP_RETRY_WAIT_MIN}
     - gitlab-terraform init
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
@@ -151,8 +152,28 @@ plan:
   artifacts:
     name: plan
     paths:
-      - ${TF_ROOT}/plan.cache
+      - ${TF_ROOT}/${PLAN}
     reports:
-      terraform: ${TF_ROOT}/plan.json
+      terraform: ${TF_ROOT}/${PLAN_JSON}
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+
+apply:
+  image:
+    name: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+  stage: apply
+  cache:
+    key: state
+    paths:
+      - ${TF_ROOT}/.terraform
+  # environment:
+  #   name: production
+  script:
+    - gitlab-terraform apply
+  dependencies:
+    - plan
+  when: manual
+  only:
+    - main
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
