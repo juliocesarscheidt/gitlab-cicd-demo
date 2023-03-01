@@ -11,6 +11,7 @@ export TF_ADDRESS="https://gitlab.com/api/v4/projects/${PROJECT_ID}/terraform/st
 export AWS_REGION="us-east-1"
 export TF_VAR_domain_name="bitcoin-bucket-web-$AWS_REGION"
 export TF_VAR_bucket_name="bitcoin-bucket-web-$AWS_REGION"
+export TF_VAR_bitcoin_price=$(curl --silent "https://api.bitpreco.com/btc-brl/ticker" | jq -r  '.last')
 
 terraform init \
   -backend-config=address=${TF_ADDRESS} \

@@ -30,6 +30,11 @@ variable "bucket_name" {
   description = "The name for the S3 bucket"
 }
 
+variable "bitcoin_price" {
+  type        = string
+  description = "The Bitcoin price"
+}
+
 resource "aws_s3_bucket" "web_bucket" {
   bucket = var.bucket_name
   tags   = {}
@@ -76,8 +81,8 @@ resource "aws_s3_object" "web_index" {
   bucket        = aws_s3_bucket.web_bucket.id
   key           = "index.html"
   content_type  = "text/html"
-  source        = "../../src/index.html"
-  etag          = filemd5("../../src/index.html")
+  content       = templatefile("../../src/index.html", { bitcoin_price = var.bitcoin_price })
+  # etag          = filemd5("../../src/index.html")
   acl           = "public-read"
   force_destroy = true
 }
