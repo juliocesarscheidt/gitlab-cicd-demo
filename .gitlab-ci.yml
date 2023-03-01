@@ -148,8 +148,9 @@ apply:
     key: state
     paths:
       - ${TF_ROOT}/.terraform
-  # environment:
-  #   name: production
+  environment:
+    name: production
+  allow_failure: false
   script:
     - gitlab-terraform apply
   dependencies:
