@@ -3,10 +3,10 @@ const moment = require('moment');
 const { MongoClient } = require('mongodb');
 
 const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/?maxPoolSize=1';
-const mongoDatabase = process.env.MONGO_DATABASE || 'bitcoinv2';
+const mongoDatabase = process.env.MONGO_DATABASE || 'bitcoin';
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
 const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-const region = process.env.AWS_REGION || 'sa-east-1';
+const region = process.env.AWS_REGION || 'us-east-1';
 const s3BucketName = process.env.S3_BUCKET_NAME;
 
 AWS.config.update({ accessKeyId, secretAccessKey, region });

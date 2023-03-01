@@ -5,7 +5,7 @@ stages:
   - post-deploy
 
 variables:
-  API_URL: "https://api.biscoint.io/v1/ticker?base=BTC&quote=BRL"
+  API_URL: "https://api.bitpreco.com/btc-brl/ticker"
 
 build-job:
   image: alpine:3.14
@@ -15,11 +15,11 @@ build-job:
     - echo "CI_JOB_STAGE Stage e.g. "build" -> $CI_JOB_STAGE"
     - echo "API_URL -> $API_URL"
     - apk add --update curl jq coreutils
-    - BITCOIN_PRICE=$(curl --silent "${API_URL}" | jq -r  '.data.last')
+    - BITCOIN_PRICE=$(curl --silent "${API_URL}" | jq -r  '.last')
     - mkdir -p output
     - echo "BITCOIN_PRICE -> $BITCOIN_PRICE"
     - |
-      echo "{\"name\" : \"btc-brl\", \"price\" : $BITCOIN_PRICE, \"date\": \"$(date '+%Y-%m-%dT%T.%3NZ')\"}" > output/BITCOIN.json
+      echo "{\"name\":\"btc-brl\",\"price\":$BITCOIN_PRICE,\"date\":\"$(date '+%Y-%m-%dT%T.%3NZ')\"}" > output/BITCOIN.json
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
   artifacts:
