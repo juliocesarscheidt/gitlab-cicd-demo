@@ -1,4 +1,5 @@
 .terraform
+terraform.log
 *.tfstate*
 output.json
 *.tfvars
