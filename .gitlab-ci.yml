@@ -25,15 +25,15 @@ build:
     - apk add --update curl jq coreutils
     - BITCOIN_PRICE=$(curl --silent "${API_URL}" | jq -r  '.last')
     - mkdir -p output
-    - echo "$BITCOIN_PRICE" | tee output/BITCOIN
     - echo "{\"name\":\"btc-brl\",\"price\":$BITCOIN_PRICE,\"date\":\"$(date '+%Y-%m-%dT%T.%3NZ')\"}" > output/BITCOIN.json
+    - echo "<body><h1>Bitcoin Price $BITCOIN_PRICE</h1></body>" | tee src/index.html
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
   artifacts:
     expire_in: 15 mins
     paths:
-      - output/BITCOIN
       - output/BITCOIN.json
+      - src/index.html
 
 # install-dependencies:
 #   image:
@@ -54,8 +54,6 @@ build:
 #   allow_failure: false
 #   script:
 #     - echo "CI_JOB_STAGE Stage e.g. "test" -> $CI_JOB_STAGE"
-#     - cat output/BITCOIN
-#     - test -f output/BITCOIN
 #     - cat output/BITCOIN.json
 #     - test -f output/BITCOIN.json
 #   after_script:
@@ -131,8 +129,6 @@ plan:
       - ${TF_ROOT}/.terraform
   allow_failure: false
   script:
-    - BITCOIN_PRICE=$(cat output/BITCOIN)
-    - echo "<body><h1>Bitcoin Price $BITCOIN_PRICE</h1></body>" | tee src/index.html
     - gitlab-terraform plan
     - gitlab-terraform plan-json
   artifacts:
