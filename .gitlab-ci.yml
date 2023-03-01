@@ -1,11 +1,14 @@
 stages:
   - build
   - test
-  - deploy
-  - post-deploy
+  - deploy-s3
+  - post-deploy-s3
+  - deploy-tf
 
 variables:
   API_URL: "https://api.bitpreco.com/btc-brl/ticker"
+  TF_ROOT: ${CI_PROJECT_DIR}/environments/production
+  TF_ADDRESS: ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/terraform/state/state
 
 build-job:
   image: alpine:3.14
@@ -68,11 +71,11 @@ test-job-node:
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-deploy-job:
+deploy-s3-job:
   image:
     name: amazon/aws-cli:2.6.2
     entrypoint: [""]
-  stage: deploy
+  stage: deploy-s3
   allow_failure: false
   script:
     - echo "CI_JOB_STAGE Stage e.g. "deploy" -> $CI_JOB_STAGE"
@@ -83,11 +86,11 @@ deploy-job:
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
-post-deploy-job:
+post-deploy-s3-job:
   image:
     name: node:18-alpine
     entrypoint: [""]
-  stage: post-deploy
+  stage: post-deploy-s3
   cache:
     key: ${CI_COMMIT_REF_SLUG}-${CI_PROJECT_DIR}
     paths:
@@ -97,5 +100,20 @@ post-deploy-job:
   script:
     - cd job
     - node main.js
+  after_script:
+    - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
+
+deploy-tf:
+  image:
+    name: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
+  stage: deploy-tf
+  cache:
+    key: state
+    paths:
+      - ${TF_ROOT}/.terraform
+  allow_failure: false
+  script:
+    - gitlab-terraform init
+    - gitlab-terraform validate
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
