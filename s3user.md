@@ -14,14 +14,31 @@ aws s3api create-bucket --bucket "${S3_BUCKET_NAME}" --region "${AWS_REGION}" --
 # create policy to user interact with S3
 cat <<EOF > tmp_policy_s3_user.json
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": ["s3:GetObject", "s3:PutObject"],
-      "Effect": "Allow",
-      "Resource": "arn:aws:s3:::${S3_BUCKET_NAME}/bitcoin/*"
-    }
-  ]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": "arn:aws:s3:::*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": "arn:aws:s3:::*/*"
+        },
+        {
+            "Sid": "VisualEditor2",
+            "Effect": "Allow",
+            "Action": "s3:ListAllMyBuckets",
+            "Resource": "*"
+        }
+    ]
 }
 EOF
 

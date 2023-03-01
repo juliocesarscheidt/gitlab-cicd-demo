@@ -35,13 +35,17 @@ variable "bucket_name" {
 resource "aws_s3_bucket" "web_bucket" {
   bucket = var.bucket_name
   policy = templatefile("templates/s3-policy.json", { bucket = var.bucket_name })
-  cors_rule {
-    allowed_headers = ["Authorization", "Content-Length"]
-    allowed_methods = ["GET", "POST", "OPTIONS"]
-    allowed_origins = ["http://${var.domain_name}"]
-    max_age_seconds = 3000
-  }
   tags = {}
+}
+
+resource "aws_s3_bucket_cors_configuration" "web_bucket_cors_configuration" {
+  bucket = aws_s3_bucket.web_bucket.id
+  cors_rule {
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+    allowed_headers = []
+    expose_headers  = []
+  }
 }
 
 resource "aws_s3_bucket_acl" "web_bucket_acl" {
@@ -49,7 +53,7 @@ resource "aws_s3_bucket_acl" "web_bucket_acl" {
   acl    = "public-read"
 }
 
-resource "aws_s3_bucket_website_configuration" "web_bucket_configuration" {
+resource "aws_s3_bucket_website_configuration" "web_bucket_website_configuration" {
   bucket = aws_s3_bucket.web_bucket.id
   index_document {
     suffix = "index.html"
@@ -60,15 +64,17 @@ resource "aws_s3_bucket_website_configuration" "web_bucket_configuration" {
 }
 
 resource "aws_s3_object" "web_index" {
-  bucket = aws_s3_bucket.web_bucket.id
-  key    = "index.html"
-  source = "../../src/index.html"
-  acl    = "public-read"
+  bucket       = aws_s3_bucket.web_bucket.id
+  key          = "index.html"
+  content_type = "text/html"
+  source       = "../../src/index.html"
+  acl          = "public-read"
 }
 
 resource "aws_s3_object" "web_404" {
-  bucket = aws_s3_bucket.web_bucket.id
-  key    = "404.html"
-  source = "../../src/404.html"
-  acl    = "public-read"
+  bucket       = aws_s3_bucket.web_bucket.id
+  key          = "404.html"
+  content_type = "text/html"
+  source       = "../../src/404.html"
+  acl          = "public-read"
 }

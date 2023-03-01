@@ -115,6 +115,9 @@ prepare:
       - ${TF_ROOT}/.terraform
   allow_failure: false
   script:
+    - echo ${TF_HTTP_ADDRESS}
+    - echo ${TF_HTTP_USERNAME}
+    - echo ${TF_HTTP_RETRY_WAIT_MIN}
     - gitlab-terraform init
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
