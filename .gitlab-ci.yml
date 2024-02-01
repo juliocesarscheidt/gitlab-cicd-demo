@@ -72,7 +72,7 @@ deploy-s3:
     - DAY=$(date '+%d')
     - MONTH=$(date '+%m')
     - YEAR=$(date '+%Y')
-    - aws s3 cp output/BITCOIN.json s3://$S3_BUCKET_NAME/bitcoin/year=$YEAR/month=$MONTH/day=$DAY/last.json
+    - aws s3 cp output/BITCOIN.json s3://$S3_BUCKET_NAME/bitcoin/year=$YEAR/month=$MONTH/day=$DAY/last
   after_script:
     - echo "CI_JOB_STATUS -> $CI_JOB_STATUS"
 
